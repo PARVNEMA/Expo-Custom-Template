@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,6 @@ import {
 import { MessageCircle, Heart, Share, Calendar } from 'lucide-react-native';
 
 import { useAuth } from '@/context/AuthContext';
-import { useApi } from '@/hooks/useApi';
-import { apiService } from '@/services/api.service';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -21,15 +19,24 @@ import { Post } from '@/types/api.types';
 export default function HomeScreen() {
   const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
+  const [error, seterror] = useState('');
 
-  const {
-    data: posts,
-    loading,
-    error,
-    execute: fetchPosts,
-  } = useApi(() => apiService.get<Post[]>('/posts'), {
-    immediate: true,
-  });
+  const [posts, setPosts] = useState<Post[]>([]);
+
+  const fetchPosts = useCallback(async () => {
+    try {
+      // const response = await apiService.getPosts();
+      const response = { data: [] };
+      setPosts(response.data);
+    } catch (error) {
+      seterror('Error fetching posts');
+      console.error('Error fetching posts:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -94,7 +101,7 @@ export default function HomeScreen() {
     </Card>
   );
 
-  if (loading && !posts) {
+  if (!posts) {
     return <LoadingSpinner fullScreen />;
   }
 
@@ -105,7 +112,7 @@ export default function HomeScreen() {
           Unable to load posts
         </Text>
         <Text className="text-base text-gray-600 mb-6 text-center">
-          {error.message}
+          {error?.message}
         </Text>
         <Button
           title="Try Again"

@@ -23,8 +23,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setisAuthenticated] = useState(!!(user && token));
 
-  const isAuthenticated = !!(user && token);
+  // const isAuthenticated = !!(user && token);
 
   useEffect(() => {
     initializeAuth();
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (storedUser && storedToken) {
         setUser(storedUser);
         setToken(storedToken);
+        setisAuthenticated(true);
       }
     } catch (error) {
       console.error('Error initializing auth:', error);

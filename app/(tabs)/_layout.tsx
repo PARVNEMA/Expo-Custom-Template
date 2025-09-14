@@ -1,32 +1,7 @@
-import { useEffect } from 'react';
-import { Tabs, useRouter, useSegments } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { Chrome as Home, User, Settings } from 'lucide-react-native';
-import { useAuth } from '@/context/AuthContext';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 export default function TabLayout() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
-  const segments = useSegments();
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    const inTabsGroup = segments[0] === '(tabs)';
-
-    if (!isAuthenticated && inTabsGroup) {
-      router.replace('/(auth)/login');
-    }
-  }, [isAuthenticated, isLoading, segments]);
-
-  if (isLoading) {
-    return <LoadingSpinner fullScreen />;
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
   return (
     <Tabs
       screenOptions={{

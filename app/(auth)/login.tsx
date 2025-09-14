@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { Link, router, useRouter } from 'expo-router';
 
 import { useAuth } from '@/context/AuthContext';
 import LoginForm from '@/components/forms/LoginForm';
@@ -18,7 +18,6 @@ import { APP_CONFIG } from '@/config/constants';
 
 export default function LoginScreen() {
   const { login } = useAuth();
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (credentials: LoginCredentials) => {
