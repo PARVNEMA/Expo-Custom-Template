@@ -6,7 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
 import { Link, router, useRouter } from 'expo-router';
 
@@ -15,6 +14,7 @@ import LoginForm from '@/components/forms/LoginForm';
 import Card from '@/components/ui/Card';
 import { LoginCredentials } from '@/types/auth.types';
 import { APP_CONFIG } from '@/config/constants';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -36,6 +36,7 @@ export default function LoginScreen() {
     <SafeAreaView className="flex-1 bg-gradient-to-br from-blue-50 to-blue-100">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={60}
         className="flex-1"
       >
         <ScrollView
