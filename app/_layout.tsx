@@ -22,13 +22,13 @@ export const MainLayout = () => {
   return (
     <SafeAreaView className="flex-1">
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Protected guard={!isAuthenticated}>
+        {/* <Stack.Protected guard={!isAuthenticated}>
           <Stack.Screen name="(auth)" />
-        </Stack.Protected>
-        <Stack.Protected guard={isAuthenticated}>
+        </Stack.Protected> */}
+        <Stack>
           <Stack.Screen name="(tabs)" />
-        </Stack.Protected>
-        <Stack.Screen name="+not-found" />
+        </Stack>
+        {/* <Stack.Screen name="+not-found" /> */}
       </Stack>
       <StatusBar style="auto" />
     </SafeAreaView>
