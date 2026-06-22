@@ -35,7 +35,7 @@ const HomeScreen = () => {
       <View>
         <TextInput
           value={todoname}
-          onChange={setTodoName()}
+          onChangeText={setTodoName}
           className="p-4 border-2 border-gray-300 rounded-lg mb-4"
         />
         <Pressable onPress={handleSaveTodo} className="p-4">

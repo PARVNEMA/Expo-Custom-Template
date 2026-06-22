@@ -10,7 +10,6 @@ import {
 import { Link, router, useRouter } from 'expo-router';
 
 import { useAuth } from '@/context/AuthContext';
-import LoginForm from '@/components/forms/LoginForm';
 import Card from '@/components/ui/Card';
 import { LoginCredentials } from '@/types/auth.types';
 import { APP_CONFIG } from '@/config/constants';
@@ -60,7 +59,9 @@ export default function LoginScreen() {
 
           {/* Login Form */}
           <Card variant="elevated" padding="lg">
-            <LoginForm onSubmit={handleLogin} loading={isLoading} />
+           <>
+           <Text>Login Form</Text>
+           </>
           </Card>
 
           {/* Register Link */}

@@ -149,8 +149,7 @@ export default function ProfileScreen() {
             <View className="flex-row items-center">
               <Calendar size={16} color="#6B7280" />
               <Text className="text-base text-gray-700 ml-3">
-                Joined{' '}
-                {new Date(user?.createdAt || Date.now()).toLocaleDateString()}
+                Joined {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Recent'}
               </Text>
             </View>
 

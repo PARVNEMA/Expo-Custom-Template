@@ -5,6 +5,8 @@ export const API_CONFIG = {
   RETRY_DELAY: 1000,
 } as const;
 
+export const FCMTOKEN_KEY='fcm_token'
+
 export const AUTH_CONFIG = {
   TOKEN_KEY: 'auth_token',
   REFRESH_TOKEN_KEY: 'refresh_token',
