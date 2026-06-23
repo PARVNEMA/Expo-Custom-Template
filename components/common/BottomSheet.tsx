@@ -2,7 +2,7 @@ import { BottomSheet as ExpoBottomSheet, Host, RNHostView } from '@expo/ui';
 import { StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
-type SnapPoint = 'half' | 'full' | 'collapsed';
+type SnapPoint = 'half' | 'full' | 'collapsed' | { fraction: number } | { height: number };
 
 interface ReusableBottomSheetProps {
   /** Controls whether the sheet is visible */
@@ -11,7 +11,7 @@ interface ReusableBottomSheetProps {
   onDismiss: () => void;
   /** The content to render inside the sheet */
   children: React.ReactNode;
-  /** Sheet snap points — defaults to ['half', 'full'] */
+  /** Sheet snap points — defaults to [{ fraction: 0.35 }, 'full'] */
   snapPoints?: SnapPoint[];
   /** Extra bottom padding so content clears the home indicator */
   contentPaddingBottom?: number;
@@ -32,7 +32,7 @@ export default function ReusableBottomSheet({
   isPresented,
   onDismiss,
   children,
-  snapPoints = ['half', 'full'],
+  snapPoints = [{ fraction: 0.35 }, 'full'],
   contentPaddingBottom = 24,
 }: ReusableBottomSheetProps) {
   return (

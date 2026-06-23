@@ -37,7 +37,7 @@ export const MainLayout = () => {
   //   notificationService.initialize().catch(console.error);
   // }, []);
   return (
-    <SafeAreaView className="flex-1" edges={['top']}>
+    <SafeAreaView className="flex-1" edges={['top','left','right']}>
        <UpdatePromptModal
         visible={showModal}
         onClose={() => setShowModal(false)}
