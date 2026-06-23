@@ -1,57 +1,67 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { useColorScheme } from 'react-native';
+import { Tabs } from 'expo-router';
+import { useColorScheme, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    // ThemeProvider fixes iOS 26 white flash on tab switch + liquid glass dark-mode flicker
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <NativeTabs
-        // Collapses the tab bar as user scrolls down (iOS 26+)
-        minimizeBehavior="onScrollDown"
-        // Prevents transparent tab bar at scroll edges (important if using FlatList)
-        // disableTransparentOnScrollEdge
-      >
-        {/* ── Home ─────────────────────────────────────────────── */}
-        <NativeTabs.Trigger name="home">
-          <NativeTabs.Trigger.Icon
-            sf={{ default: 'house', selected: 'house.fill' }}
-            md={{ default: 'home', selected: 'home_filled' }}
-          />
-          <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-        </NativeTabs.Trigger>
-
-        {/* ── Explore ───────────────────────────────────────────── */}
-        <NativeTabs.Trigger name="settings">
-          <NativeTabs.Trigger.Icon
-            sf={{ default: 'safari', selected: 'safari.fill' }}
-            md={{ default: 'explore', selected: 'explore' }}
-          />
-          <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
-        </NativeTabs.Trigger>
-
-        {/* ── Notifications ─────────────────────────────────────── */}
-        <NativeTabs.Trigger name="demo">
-          <NativeTabs.Trigger.Icon
-            sf={{ default: 'bell', selected: 'bell.fill' }}
-            md={{ default: 'notifications', selected: 'notifications_filled' }}
-          />
-          <NativeTabs.Trigger.Label>Notifications</NativeTabs.Trigger.Label>
-          {/* Swap to <NativeTabs.Trigger.Badge>3</NativeTabs.Trigger.Badge> for a count */}
-          {/* Use <NativeTabs.Trigger.Badge /> (no children) for a dot badge */}
-        </NativeTabs.Trigger>
-
-        {/* ── Profile ───────────────────────────────────────────── */}
-        <NativeTabs.Trigger name="profile">
-          <NativeTabs.Trigger.Icon
-            sf={{ default: 'person', selected: 'person.fill' }}
-            md={{ default: 'person', selected: 'person_filled' }}
-          />
-          <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
-        </NativeTabs.Trigger>
-      </NativeTabs>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+          tabBarInactiveTintColor: colorScheme === 'dark' ? '#888888' : '#888888',
+          tabBarStyle: {
+            backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#FFFFFF',
+            borderTopWidth: 0,
+            height: Platform.OS === 'ios' ? 80 : 60,
+            paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+            paddingTop: 5,
+          },
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: '500',
+          },
+        }}>
+        <Tabs.Screen
+          name="home"
+          options={{
+            title: 'Home',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: 'Settings',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'settings' : 'settings-outline'} size={24} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="demo"
+          options={{
+            title: 'Demo',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'flask' : 'flask-outline'} size={24} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
+            ),
+          }}
+        />
+      </Tabs>
     </ThemeProvider>
   );
 }
