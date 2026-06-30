@@ -4,7 +4,7 @@ A production-grade, scalable, and reusable Expo React Native template built with
 
 ## 🚀 Features
 
-- **Expo SDK 53** - Latest stable version with cutting-edge features
+- **Expo SDK 56** - Latest stable version with cutting-edge features
 - **TypeScript** - Full type safety and better developer experience
 - **Expo Router v4** - File-based routing with type-safe navigation
 - **NativeWind v4** - Tailwind CSS for React Native
@@ -21,7 +21,7 @@ A production-grade, scalable, and reusable Expo React Native template built with
 
 ## 🛠 Tech Stack
 
-- **Framework**: Expo SDK 53
+- **Framework**: Expo SDK 56
 - **Language**: TypeScript
 - **Navigation**: Expo Router v4
 - **Styling**: NativeWind v4 (Tailwind CSS)
