@@ -1,10 +1,13 @@
-# Project Rules
+# Rule Index
 
-Place one topic per Markdown file in this directory. Suggested topics:
+Read the rules applicable to the change, plus every rule linked by `AGENTS.md`.
 
-- `expo.md` — Expo, React Native, routing, and platform constraints
-- `code-style.md` — TypeScript, components, naming, and formatting
-- `testing.md` — required commands and test expectations
-- `git.md` — branching, commits, and pull-request conventions
-
-Each rule should state when it applies and use clear, testable language.
+| Area | Rule | Purpose |
+| --- | --- | --- |
+| Architecture | `architecture/features.md` | Feature ownership and route boundaries |
+| Architecture | `architecture/services-and-types.md` | Business logic, data boundaries, and types |
+| Architecture | `architecture/shared-code.md` | When and how to promote code to shared locations |
+| UI | `ui/nativewind.md` | NativeWind-only styling and token usage |
+| UI | `ui/components.md` | Component composition and reuse decisions |
+| UI | `ui/accessibility.md` | Accessible mobile interactions and semantics |
+| Quality | `quality/change-workflow.md` | Focused changes and validation |

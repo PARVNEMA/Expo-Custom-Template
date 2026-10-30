@@ -1,8 +1,20 @@
 # Agent Configuration
 
-This directory holds project-local instructions for AI coding agents.
+This directory contains durable, project-local instructions for coding agents.
 
-- `rules/` contains focused, durable engineering rules.
-- `../AGENTS.md` is the entry point that directs agents here.
+`AGENTS.md` is the mandatory entry point. It defines global constraints and which rule files to read. The `rules/` tree is organized by concern:
 
-Keep rules short, actionable, and specific to this repository. Do not store secrets, tokens, or personal data here.
+```text
+rules/
+  architecture/   Feature ownership, services, types, shared-code promotion
+  ui/             NativeWind, component design, accessibility
+  quality/        Change workflow and verification
+```
+
+## Writing rules
+
+- Keep one subject per file.
+- State scope before rules.
+- Write observable requirements, not vague preferences.
+- Update this index and `AGENTS.md` for new rule categories.
+- Never put secrets, environment values, personal data, or generated output here.
