@@ -7,6 +7,8 @@ import axios, {
 import * as SecureStore from 'expo-secure-store';
 import { API_CONFIG, AUTH_CONFIG } from '@/config/constants';
 import { ApiResponse, ApiError } from '@/types/api.types';
+import { logger } from './logger.service';
+import { toast } from './toast.service';
 
 class ApiService {
   private client: AxiosInstance;
@@ -33,6 +35,7 @@ class ApiService {
     // Request interceptor
     this.client.interceptors.request.use(
       async (config) => {
+        logger.debug('ApiService', `HTTP ${config.method?.toUpperCase()} -> ${config.url}`);
         const token = await SecureStore.getItemAsync(AUTH_CONFIG.TOKEN_KEY);
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -40,13 +43,20 @@ class ApiService {
         return config;
       },
       (error) => {
+        logger.error('ApiService', 'Request setup failed', error);
         return Promise.reject(this.handleError(error));
       }
     );
 
     // Response interceptor
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        logger.debug(
+          'ApiService',
+          `HTTP ${response.status} <- ${response.config.url}`
+        );
+        return response;
+      },
       async (error: AxiosError) => {
         const originalRequest = error.config as AxiosRequestConfig & {
           _retry?: boolean;
@@ -66,7 +76,7 @@ class ApiService {
 
           originalRequest._retry = true;
           this.isRefreshing = true;
-          // refresh logic
+
           try {
             const refreshToken = await SecureStore.getItemAsync(
               AUTH_CONFIG.REFRESH_TOKEN_KEY
@@ -88,15 +98,16 @@ class ApiService {
             }
           } catch (refreshError) {
             this.processQueue(refreshError, null);
-            // Redirect to login
             await this.clearAuthData();
-            throw this.handleError(refreshError);
+            const formattedError = this.handleError(refreshError, true);
+            throw formattedError;
           } finally {
             this.isRefreshing = false;
           }
         }
 
-        return Promise.reject(this.handleError(error));
+        const formattedError = this.handleError(error, true);
+        return Promise.reject(formattedError);
       }
     );
   }
@@ -119,9 +130,11 @@ class ApiService {
     await SecureStore.deleteItemAsync(AUTH_CONFIG.USER_KEY);
   }
 
-  private handleError(error: any): ApiError {
+  private handleError(error: any, showToast: boolean = false): ApiError {
+    let apiError: ApiError;
+
     if (axios.isAxiosError(error)) {
-      const apiError: ApiError = {
+      apiError = {
         message:
           error.response?.data?.message ||
           error.message ||
@@ -130,13 +143,20 @@ class ApiService {
         code: error.response?.data?.code || error.code,
         details: error.response?.data?.details || null,
       };
-      return apiError;
+    } else {
+      apiError = {
+        message: error?.message || 'An unexpected error occurred',
+        status: 0,
+      };
     }
 
-    return {
-      message: 'An unexpected error occurred',
-      status: 0,
-    };
+    logger.error('ApiService', `API Error [${apiError.status}]: ${apiError.message}`, apiError);
+
+    if (showToast) {
+      toast.error(apiError.message, 'Network Request Failed');
+    }
+
+    return apiError;
   }
 
   private async retryRequest<T>(

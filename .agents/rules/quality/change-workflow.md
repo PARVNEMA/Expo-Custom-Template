@@ -1,25 +1,30 @@
-# Change Workflow and Verification
+# Quality Assurance & Change Workflow
 
-## Scope
+Every modification to the codebase must follow a rigorous verification workflow to ensure zero regressions, complete type safety, and clean maintainability.
 
-Applies to all source, configuration, and documentation changes.
+## 1. Incremental Verification
 
-## During implementation
+Before declaring any change or feature complete:
+1. **Type Checking**:
+   - Run the TypeScript compiler with zero errors:
+     ```bash
+     npx tsc --noEmit
+     ```
+2. **Linting**:
+   - Run ESLint to ensure code style and static rules conform:
+     ```bash
+     npm run lint
+     ```
+3. **No Unhandled Errors**:
+   - Ensure async operations are safely wrapped with try/catch blocks, errors are logged via `logger.error`, and feedback is given via `toast.error`.
 
-- Make the smallest change that meets the request.
-- Follow the closest existing pattern unless it conflicts with an explicit rule.
-- Do not mix refactors, formatting sweeps, dependency upgrades, or unrelated cleanup into a feature change.
-- Add tests when the existing test setup covers the changed behavior; never claim a behavior was tested if no test was run.
+## 2. Review Checklist
 
-## Before handoff
-
-- Inspect changed files for unintended edits and secrets.
-- Run the most relevant available `package.json` scripts, such as lint, type check, or targeted tests.
-- If validation cannot run, report the exact command and blocker instead of implying success.
-- Summarize changed behavior, files, verification, and deliberate scope exclusions.
-
-## Git safety
-
-- Never overwrite or discard unrelated existing work.
-- Do not commit, push, amend, rebase, or reset unless explicitly requested.
-- Do not modify generated folders, build output, lockfiles, or Expo configuration unless the requested work requires it.
+- [ ] All new files reside in the proper feature-owned or shared directory.
+- [ ] No `StyleSheet.create` or inline styles were introduced (pure NativeWind `className`).
+- [ ] Design tokens (colors, font sizes) originate from `config/theme.ts`.
+- [ ] No `any` type was introduced.
+- [ ] Controlled forms use `ControlledInput` / `react-hook-form` / `zod`.
+- [ ] Interactive elements meet 44x44pt touch target and have accessibility labels.
+- [ ] Logging uses `services/logger.service.ts` with sensitive data masked.
+- [ ] Errors from API operations notify users via `services/toast.service.ts`.

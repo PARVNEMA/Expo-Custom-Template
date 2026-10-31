@@ -1,30 +1,25 @@
-# Shared Code Promotion
+# Shared Code & Promotion Rules
 
-## Scope
+To keep the template modular and avoid monolithic pollution, code starts local and is only promoted when necessary.
 
-Applies when deciding whether code belongs in a feature or a root-level shared directory.
+## 1. The Rule of Two
 
-## Promotion rule
+Code begins its life inside a specific feature (`feature/<feature-name>/`).
+Code is **only** promoted to shared directories (`components/`, `services/`, `types/`, `hooks/`) when:
+1. Two or more distinct features genuinely require the identical functionality.
+2. The logic or component is truly domain-agnostic (e.g., standard button, date picker, API client, auth token storage).
 
-Keep code local on its first use. Promote it only when at least two real consumers require the same behavior and contract.
+## 2. Shared Code Placement
 
-Before promoting, confirm:
+| Category | Destination | Criteria |
+|---|---|---|
+| Reusable Primitives | `components/ui/` | Primitive design elements: Button, Input, Modal, Card, Text, Spinner |
+| Form Controls | `components/forms/` | React Hook Form controlled wrappers: ControlledInput, ControlledSelect |
+| Cross-Cutting Logic | `services/` | Logger, Toast, HTTP Client, Biometrics, SecureStorage |
+| Global Types | `types/` | API responses, User session models, Navigation param lists |
+| Shared Custom Hooks | `hooks/` | Reusable hooks without domain coupling (e.g., `useDebounce`, `useKeyboard`) |
 
-1. Consumers need the same behavior, not merely a similar appearance.
-2. The shared API can remain small and clear.
-3. The module will not force feature-specific assumptions onto unrelated consumers.
-4. The module has a clear owner and purpose after promotion.
+## 3. Preservation & Clean Exports
 
-## Shared locations
-
-- `components/`: domain-neutral reusable UI.
-- `services/`: cross-feature integrations, clients, or capabilities.
-- `types/`: cross-feature models and contracts.
-- `hooks/`: shared React behavior.
-- `config/`: app-wide static configuration and constants.
-
-## Rules
-
-- Shared modules must not import from feature directories.
-- Do not create universal components with feature flags for unrelated flows; split into composable primitives or keep them local.
-- Preserve existing consumer behavior when changing a shared public API unless migration is in scope.
+- Never leave dead or duplicate components in features after promoting them to shared.
+- Avoid circular imports by ensuring shared components never import from `feature/` modules.

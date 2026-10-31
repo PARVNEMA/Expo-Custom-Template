@@ -1,36 +1,50 @@
-# Feature Ownership and Routing
+# Feature-First Architecture Rules
 
-## Scope
+Every application capability and business domain must be organized as an isolated, self-contained feature inside the `feature/` directory.
 
-Applies when adding, moving, or changing feature-specific screens, components, logic, or types.
+## 1. Directory Structure
 
-## Default placement
-
-Each product capability owns its implementation under `feature/<feature-name>/`:
+Each feature lives inside `feature/<feature-name>/` and follows this standard layout:
 
 ```text
-feature/profile/
-  components/
-  services/
-  types/
+feature/<feature-name>/
+├── components/     # UI screens, widgets, cards, and forms private to this feature
+├── services/       # API integration, business logic, storage, and transformers
+└── types/          # TypeScript interfaces, contracts, Zod schemas, and view models
 ```
 
-- Name features for user-facing capabilities, such as `auth`, `profile`, or `orders`, not technical layers.
-- Keep feature imports inward: a feature may use shared modules but must not reach into another feature’s private files.
-- Promote common capability only when it has a stable cross-feature use; do not import another feature’s implementation for convenience.
-- Avoid barrel exports unless they provide a deliberate public boundary.
+### Folder Responsibilities:
+- **`components/`**: Houses all visual UI components used exclusively by this feature. No cross-feature dependencies allowed.
+- **`services/`**: Houses classes, functions, and query/mutation handlers. Encapsulates all domain-specific data operations and side-effects.
+- **`types/`**: Houses interfaces, request/response models, state types, and domain contracts.
 
-## Route responsibilities
+## 2. Relationship with `app/` (Expo Router)
 
-`app/` contains Expo Router routes, layouts, and screen composition.
+- Routes inside `app/` are **pure composition and navigation coordinators**.
+- Routes must **NOT** contain heavy UI definitions, inline API fetching, or complex business logic.
+- A route imports the feature screen or main orchestrator from `feature/<feature-name>/components/...` and passes navigation/route parameters.
 
-- Routes may read parameters, configure navigation, assemble screens, and pass props.
-- Routes must not own API calls, mutation orchestration, complex transformations, or reusable UI sections.
-- When a route grows beyond composition, delegate to a named feature screen/container.
-- Keep navigation-specific code near its route unless multiple routes use it.
+```tsx
+// Good: app/(app)/profile.tsx
+import { ProfileScreen } from '@/feature/profile/components/ProfileScreen';
 
-## Structure guardrails
+export default function ProfileRoute() {
+  return <ProfileScreen />;
+}
+```
 
-- Do not create root-level folders for a single feature’s code.
-- Do not put unrelated feature code into an existing feature because the names are similar.
-- Do not duplicate a feature to make a small variation; extract only the shared part.
+```tsx
+// Bad: app/(app)/profile.tsx
+// Defining raw JSX views, calling axios or SecureStore directly in route files
+```
+
+## 3. Strict Boundary & Isolation Rules
+
+1. **No Feature-to-Feature Component Ingestion**: A component in `feature/auth` must never import a component from `feature/dashboard`.
+2. **Promoting to Shared**:
+   - If two or more features genuinely require the same component, logic, or type, promote it to the root level:
+     - Shared UI -> `components/`
+     - Shared Business Logic -> `services/`
+     - Shared Types -> `types/`
+3. **No Unstructured Utilities**:
+   - Do not create random `utils/` or `helpers/` subdirectories inside features without clear domain responsibilities. Place business logic in `services/`.

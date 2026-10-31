@@ -1,27 +1,28 @@
-# Services and Types
+# Services and Types Rules
 
-## Scope
+Services encapsulate business logic, API calls, storage access, and device interactions. Types provide compile-time guarantees and schema validation.
 
-Applies to data access, business rules, mapping, mutations, hooks that coordinate data, and TypeScript contracts.
+## 1. Service Guidelines
 
-## Services
+1. **Singleton or Stateless Classes / Modules**:
+   - Provide concrete methods for every action.
+   - Inject dependencies or reference the global `apiService` rather than instantiating ad-hoc HTTP clients.
+2. **Logging via `logger`**:
+   - Every service operation should log meaningful lifecycle events (e.g. `logger.info('AuthService', 'Login initiated', { email })`).
+   - Never log sensitive fields (passwords, auth tokens, credit cards).
+3. **Error Handling & User Feedback**:
+   - Surface predictable error models (`ApiError`).
+   - Use `toast.error(message)` or allow `ApiService` interceptors to display user-visible alerts automatically.
+   - Re-throw formatted errors when callers need to manage local state (e.g., stopping a button loading spinner).
 
-- Services own network calls, storage access, response mapping, and feature business rules.
-- Name service functions after the capability: `getProfile`, `updateProfile`, `signIn`; avoid vague names such as `handleData`.
-- Services do not render UI or navigate. They return typed data or typed errors.
-- Convert external or untrusted data at the service boundary so UI receives predictable app-owned models.
-- Keep endpoint payload mapping close to its owning service.
-- Keep a service feature-local unless it is genuinely used across features.
+## 2. Type Safety Standards
 
-## Types
-
-- Keep feature-only types in `feature/<name>/types/`; use root `types/` only for cross-feature contracts.
-- Separate API payloads from UI/domain models when their shape or semantics differ, such as `UpdateProfileRequest` and `Profile`.
-- Never use `any`. Narrow `unknown` with explicit validation or type guards at boundaries.
-- Do not use `as SomeType` solely to suppress a compiler error; model the data correctly.
-
-## Component boundary
-
-- Components may use a feature hook or receive data/actions by props.
-- Components must not duplicate API mapping or business rules from a service.
-- Model loading, empty, error, and success states explicitly at screen/container level.
+1. **Strict Zero-`any` Policy**:
+   - Never use `any` in service methods, return types, or component props.
+   - Use `unknown` with type narrowing, generics `<T>`, or discriminated unions.
+2. **Schema Validation with Zod**:
+   - Use Zod schemas for all form schemas and API payload validations where unpredictable data can arrive.
+   - Derive TypeScript types using `z.infer<typeof Schema>`.
+3. **Location of Types**:
+   - Feature-specific types belong in `feature/<name>/types/`.
+   - App-wide domain models, shared API contracts, or global config types belong in `types/`.

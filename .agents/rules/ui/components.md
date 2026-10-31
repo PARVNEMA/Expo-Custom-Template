@@ -1,32 +1,56 @@
-# Reusable Components
+# Component Design & Controlled Inputs Rules
 
-## Scope
+Components in this project emphasize reusability, composition, accessibility, and clean form management.
 
-Applies when adding or changing React Native UI components.
+## 1. Controlled Form Inputs (`components/forms/`)
 
-## Ownership
+- All form fields must be controlled and integrate seamlessly with `react-hook-form` and `zod`.
+- Use existing controlled components or follow the pattern established in:
+  - `ControlledInput.tsx`
+  - `ControlledSelect.tsx`
+  - `ControlledDateField.tsx`
+  - `ControlledMultiSelect.tsx`
+- Controlled components must accept:
+  - `control`: `Control<T>` from `useForm`
+  - `name`: `FieldPath<T>`
+  - `rules` / `label` / `placeholder` / `error` handling
+- Validation errors must automatically render beneath the input using `text-red-500 text-xs` with proper spacing.
 
-- Keep one-screen and one-feature components in `feature/<name>/components/`.
-- Promote a component to root `components/` only after two or more features use the same behavior and interface.
-- Shared components are domain-neutral: `OrderStatusBadge` is feature-owned, while a generic `Badge` may be shared.
+```tsx
+// Pattern for Controlled Form Usage:
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ControlledInput } from '@/components/forms/ControlledInput';
+import { Button } from '@/components/ui/Button';
 
-## API design
+export const LoginForm = () => {
+  const { control, handleSubmit } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
 
-- Give each component one clear responsibility.
-- Prefer `children`, focused slots, and small explicit props over a component with many unrelated booleans.
-- Use typed props and event-specific callback names such as `onPress`, `onChangeText`, and `onSubmit`.
-- Do not expose feature-specific state or implementation details through a shared component API.
-- Reusable layout and presentation components must support `className` for NativeWind placement and spacing changes.
-- Forward accessibility props when wrapping pressables, inputs, or other interactive primitives.
+  return (
+    <View className="gap-4">
+      <ControlledInput
+        control={control}
+        name="email"
+        label="Email Address"
+        placeholder="you@domain.com"
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      <Button title="Sign In" onPress={handleSubmit(onSubmit)} />
+    </View>
+  );
+};
+```
 
-## Rendering and logic
+## 2. Reusable Primitives (`components/ui/`)
 
-- Keep presentational components deterministic from props.
-- Put fetching, persistence, and business decisions in services, hooks, or a feature screen/container.
-- Make loading, empty, error, and disabled states intentional.
-- Do not duplicate a component for a small visual difference; consider a focused prop or composition point first.
-
-## Naming
-
-- Use PascalCase components and matching file names, such as `PrimaryButton.tsx`.
-- Keep component-local types and helpers beside the component unless independently reused.
+- Favor small, composable UI building blocks over bloated mega-components with dozens of boolean flags.
+- Base primitives:
+  - `Button`: Primary, secondary, outline, text variants with loading indicators.
+  - `Input`: Uncontrolled/standard input primitive with prefix/suffix icons and focus states.
+  - `Card`: Structured container with rounded corners and consistent padding.
+  - `Modal` / `BottomSheet`: Dynamic popups with backdrop blur/overlay.
+- Every reusable component must forward standard accessibility attributes (`accessibilityRole`, `accessibilityLabel`).
