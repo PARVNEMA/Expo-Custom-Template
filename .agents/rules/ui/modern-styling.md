@@ -1,34 +1,215 @@
-# Modern Professional Mobile Styling Rules
+# Rule: Modern Styling & Mobile UX Standards
 
-Mobile applications built with this template must feel polished, fluid, responsive, and native to both iOS and Android.
+**Scope**: All screens, components, and interactive elements in this project.
 
-## 1. Visual Polish & Hierarchy
+> **MANDATORY** — All AI agents and contributors MUST follow this rule without exception.
 
-1. **Rhythm & Spacing (4pt/8pt grid)**:
-   - Stick to consistent spacing increments: `gap-2` (8px), `gap-3` (12px), `gap-4` (16px), `gap-6` (24px).
-   - Use generous horizontal screen margins: standard screen containers must use `px-4` or `px-6`.
-2. **Cards and Groupings**:
-   - Prefer grouping content inside cohesive surface cards with subtle borders (`border border-neutral-150` or `border-neutral-200`) and soft radiuses (`rounded-2xl` or `rounded-xl`).
-   - Avoid harsh drop shadows. Use subtle elevation or ambient borders instead of dark high-opacity shadows.
-3. **High-Contrast, Legible Typography**:
-   - Maintain strict contrast ratios (WCAG AA).
-   - Avoid faint gray text on white cards. Use `text-neutral-900` for titles and `text-neutral-500` for metadata.
+---
 
-## 2. Touch Targets & Micro-Interactions
+## 1. Touch Targets
 
-1. **Minimum Touch Target**:
-   - Every tappable element (buttons, icon buttons, list items, checkboxes) must have a minimum interactive dimension of **44x44 points** (`min-h-[44px] min-w-[44px]`).
-   - Use `hitSlop` or internal padding (`p-2.5` / `p-3`) on small icon buttons to ensure effortless tapping.
-2. **Instant Visual Feedback**:
-   - Interactive elements must provide visual feedback on press. Use `active:opacity-70` or `active:scale-[0.98]`.
-   - Incorporate haptic feedback for key user interactions (e.g. `Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)` for primary button taps or toggle switches).
-3. **Smooth Empty and Loading States**:
-   - Never show blank screens during asynchronous operations. Always render skeletons or standard `LoadingSpinner` components.
-   - Screen lists must handle empty states gracefully using informative icons, title, and descriptive message.
+Every interactive element (button, pressable, icon button, list row) must meet the **minimum 44 × 44 pt touch target** requirement.
 
-## 3. Keyboard & Screen Ergonomics
+```tsx
+// ✅ CORRECT — minimum 44pt touch target
+<Pressable className="w-11 h-11 items-center justify-center rounded-full">
+  <Icon name="close" size={20} />
+</Pressable>
 
-1. **Keyboard Avoidance**:
-   - Wrap forms with `KeyboardAvoidingWrapper` or `react-native-keyboard-controller` to ensure inputs are never occluded by the virtual keyboard.
-2. **Safe Screen Wrapper**:
-   - Wrap screen root components in `SafeScreen` or respect safe area insets to prevent UI clipping by notches, island cutouts, and system home bars.
+// ❌ FORBIDDEN — icon with no wrapper, tap area is just the icon size
+<Icon name="close" size={20} onPress={handleClose} />
+
+// ❌ FORBIDDEN — too small
+<Pressable className="w-6 h-6">
+  <Icon name="close" size={14} />
+</Pressable>
+```
+
+---
+
+## 2. Active Feedback
+
+Every pressable element must provide visual feedback on press. Use `active:` NativeWind variants or `Pressable` with `style` callback.
+
+```tsx
+// ✅ CORRECT — active state feedback
+<Pressable className="bg-primary active:bg-primary-700 rounded-xl px-4 py-3">
+  <Text className="text-white font-semibold">Submit</Text>
+</Pressable>
+
+// ✅ CORRECT — opacity feedback via disabled/opacity pattern
+<TouchableOpacity activeOpacity={0.75} onPress={handlePress}>
+  <Text>Tap me</Text>
+</TouchableOpacity>
+
+// ❌ FORBIDDEN — no visual feedback
+<Pressable onPress={handlePress}>
+  <Text>Tap me</Text>
+</Pressable>
+```
+
+---
+
+## 3. Safe Area Awareness
+
+Every screen must respect safe areas. Use `SafeScreen` (wraps `SafeAreaView` + `KeyboardAvoidingView`) or apply `SafeAreaView` directly.
+
+```tsx
+// ✅ CORRECT — use the shared SafeScreen wrapper
+import SafeScreen from '@/components/ui/SafeScreen';
+
+export default function MyScreen() {
+  return (
+    <SafeScreen>
+      {/* screen content */}
+    </SafeScreen>
+  );
+}
+
+// ✅ CORRECT — explicit SafeAreaView when SafeScreen doesn't fit
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+<SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
+  {/* content */}
+</SafeAreaView>
+
+// ❌ FORBIDDEN — no safe area handling
+<View className="flex-1 bg-background">
+  {/* content clips into notch or home indicator */}
+</View>
+```
+
+---
+
+## 4. Keyboard Avoiding
+
+Any screen with form inputs must handle the software keyboard. Use `KeyboardAvoidingWrapper` or `KeyboardAvoidingView`.
+
+```tsx
+// ✅ CORRECT — wrap forms with keyboard avoiding
+import KeyboardAvoidingWrapper from '@/components/ui/KeyboardAvoidingWrapper';
+
+<KeyboardAvoidingWrapper>
+  <ScrollView>
+    <ControlledInput ... />
+    <Button ... />
+  </ScrollView>
+</KeyboardAvoidingWrapper>
+```
+
+---
+
+## 5. Elevation & Shadow
+
+Use shadow utilities for elevation cues. Never hardcode `elevation` style or `shadowColor` etc. directly.
+
+```tsx
+// ✅ CORRECT — NativeWind shadow utilities
+<View className="bg-surface-card rounded-xl shadow-sm p-4">   {/* subtle card */}
+<View className="bg-surface-elevated rounded-2xl shadow-md p-6"> {/* modal / sheet */}
+
+// ❌ FORBIDDEN — manual platform shadow
+<View style={{ elevation: 4, shadowColor: '#000', shadowOpacity: 0.1 }}>
+```
+
+---
+
+## 6. Accessibility Labels
+
+Every interactive element that does not have visible text must have an `accessibilityLabel`:
+
+```tsx
+// ✅ CORRECT — icon button with label
+<Pressable
+  onPress={handleDelete}
+  className="w-11 h-11 items-center justify-center"
+  accessibilityLabel="Delete post"
+  accessibilityRole="button"
+>
+  <Icon name="trash" size={20} />
+</Pressable>
+
+// ❌ FORBIDDEN — icon button with no label (screen readers say "button")
+<Pressable onPress={handleDelete}>
+  <Icon name="trash" size={20} />
+</Pressable>
+```
+
+Images that convey meaning must have `accessible` and `accessibilityLabel`:
+
+```tsx
+// ✅ CORRECT
+<Image source={uri} accessible accessibilityLabel="Profile photo of John Doe" />
+
+// Decorative images — explicitly mark as not accessible
+<Image source={decorativeUri} accessible={false} />
+```
+
+---
+
+## 7. Typography Hierarchy
+
+Every screen must use a clear typographic hierarchy. The project font scale:
+
+```
+Screen title     : text-2xl font-bold text-text-primary
+Section header   : text-lg font-semibold text-text-primary
+Card title       : text-base font-semibold text-text-primary
+Body copy        : text-sm font-normal text-text-secondary
+Caption / meta   : text-xs font-normal text-text-muted
+Label (form)     : text-[11px] font-bold text-text-secondary uppercase tracking-wider
+Error text       : text-xs font-normal text-red-500
+```
+
+```tsx
+// ✅ CORRECT — clear hierarchy
+<Text className="text-2xl font-bold text-text-primary mb-1">Your Posts</Text>
+<Text className="text-sm text-text-secondary">Manage your content below</Text>
+
+// ❌ FORBIDDEN — arbitrary sizes with no token basis
+<Text style={{ fontSize: 22, color: '#333' }}>Your Posts</Text>
+```
+
+---
+
+## 8. Loading & Empty States
+
+Every screen that loads asynchronous data must handle three states:
+
+```tsx
+// ✅ CORRECT — handle all three states
+if (isLoading) return <LoadingSpinner />;
+
+if (error) return (
+  <View className="flex-1 items-center justify-center px-6">
+    <Text className="text-text-muted text-base text-center mb-4">
+      Failed to load. Please try again.
+    </Text>
+    <Button title="Retry" onPress={refetch} variant="outline" />
+  </View>
+);
+
+if (!data || data.length === 0) return (
+  <View className="flex-1 items-center justify-center px-6">
+    <Text className="text-text-muted text-base text-center">No posts yet.</Text>
+  </View>
+);
+
+return <FlatList data={data} ... />;
+
+// ❌ FORBIDDEN — rendering empty list with no message, no loading indicator
+return <FlatList data={data ?? []} ... />;
+```
+
+---
+
+## 9. Checklist Before Committing
+
+- [ ] All interactive elements have ≥ 44 × 44 pt touch target
+- [ ] All pressables have `active:` variant or `activeOpacity` feedback
+- [ ] All screens use `SafeScreen` or `SafeAreaView`
+- [ ] Screens with forms use `KeyboardAvoidingWrapper`
+- [ ] Shadows use Tailwind utilities — no manual `elevation` style
+- [ ] Icon-only buttons have `accessibilityLabel` and `accessibilityRole="button"`
+- [ ] Typography follows the defined hierarchy
+- [ ] Loading, error, and empty states all handled

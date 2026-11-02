@@ -1,74 +1,138 @@
 # Agent Handbook
 
-This is the operating guide for anyone changing this Expo / React Native project. Read this file first, then read every relevant rule in [`.agents/rules/`](.agents/rules/).
+> **⚠️ STRICTLY MANDATORY** — Every AI agent, coding assistant, and contributor working in this repository **MUST** read this file first and follow every rule without exception. No workarounds. No shortcuts. No inline styles. No raw `console.log`. No `any`.
 
-## Mandatory Instructions for Antigravity & AI Agents
+---
 
-Whenever Antigravity or any AI coding assistant runs in this repository, **all instructions and rules specified in this document and under `.agents/rules/` are strictly mandatory and MUST be followed without exception.** Do not bypass these rules, create ad-hoc workarounds, or write unstyled or inline-styled code.
+## Instruction Priority
 
-## Instruction order
+Follow instructions in this exact order — higher wins on conflict:
 
-Follow instructions in this order: user and system instructions, this file, applicable `.agents/rules/` files, then the closest existing local pattern. If two instructions conflict, identify the conflict and ask rather than silently choosing.
+1. User / system prompt instructions
+2. This file (`AGENTS.md`)
+3. The applicable rule files under `.agents/rules/`
+4. The closest existing local pattern in the codebase
 
-## Before changing code
+If two rules conflict, **stop and ask** rather than silently choosing.
 
-1. Inspect the target feature, route/screen, and closest comparable implementation.
-2. Read every rule listed in the task matrix below.
-3. Keep the change within the requested feature and scope.
-4. Reuse existing components, services, types, hooks, and Tailwind tokens before creating new ones.
-5. Preserve unrelated user changes; never reformat, rename, or reorganize files outside the request.
+---
 
-## Directory map
+## Before Writing Any Code
+
+1. Read the applicable rule files for your task type (see task matrix below).
+2. Inspect the closest existing implementation in the codebase.
+3. Reuse existing components, services, types, and hooks before creating new ones.
+4. Keep changes within the requested scope — do not reformat unrelated files.
+
+---
+
+## Directory Map
 
 ```text
-app/                    Expo Router routes and screen composition only (no heavy UI/business logic)
-feature/<feature-name>/ Feature-owned implementation
+app/                    Expo Router routes — thin wrappers only, no business logic
+feature/<name>/         Feature-owned implementation
   components/           Feature-only UI components and screens
-  services/             Feature business logic, queries, mutations, adapters
-  types/                Feature TypeScript types and contracts
-components/             Shared UI used by two or more features
+  services/             Feature business logic, API calls, adapters
+  types/                Feature TypeScript types (*.types.ts) and Zod schemas (*.schema.ts)
+components/
   forms/                Controlled inputs (ControlledInput, ControlledSelect, etc.)
   ui/                   Primitive design elements (Button, Card, Modal, etc.)
-services/               Shared cross-feature services (api.service.ts, logger.service.ts, toast.service.ts)
+  common/               Shared layout wrappers (BottomSheet, UpdatePromptModal)
+  gradients/            Gradient utility components
+services/               Shared cross-feature services (api, logger, toast, auth)
 types/                  Shared cross-feature types and contracts
 context/                App-wide React context providers
 hooks/                  Shared hooks with no single feature owner
-config/                 App configuration and design tokens (theme.ts, constants.ts)
+config/                 Design tokens and constants (theme.ts, constants.ts)
 ```
 
-## Non-negotiable conventions
+---
 
-- **Feature-Based Architecture**: Group by feature (`feature/<feature-name>/{components,services,types}`). Routes in `app/` are thin compositional wrappers.
-- **NativeWind Only**: Style UI with NativeWind `className` utilities only. Do not introduce `StyleSheet`, inline style objects, or CSS-in-JS for new work.
-- **Centralized Design Tokens**: Take all colors, font sizes, radiuses, and spacing from `config/theme.ts` (available as Tailwind utilities). Never hardcode random hex color codes.
-- **Reusable & Controlled Components**: Form inputs must be controlled (`ControlledInput`, etc.) and wired with `react-hook-form` + `zod`.
-- **Modern Mobile App Aesthetics**: Follow `.agents/rules/ui/modern-styling.md` for professional mobile app standards: min 44x44pt touch targets, active feedback/haptics, safe areas, clean elevation, and accessibility labels.
-- **Central Utility Logger**: Use `logger` (`services/logger.service.ts`) everywhere for structured logging. Never use raw `console.log` for app telemetry or debugging.
-- **Central Utility Toast**: Use `toast` (`services/toast.service.ts`) for user notifications. All failed API requests must surface friendly error toasts.
-- **Strict TypeScript**: No `any`, untyped payloads, or assertions used merely to silence errors.
+## Non-Negotiable Conventions
 
-## Required rules by task
+| Convention | Rule |
+|---|---|
+| **Feature-Based Architecture** | All feature code lives in `feature/<name>/{components,services,types}`. Routes in `app/` are thin wrappers. |
+| **NativeWind Only** | Style with `className` utilities only. No `StyleSheet`, inline `style` objects, or CSS-in-JS. |
+| **Semantic Design Tokens** | All colors, spacing, radii, and font sizes from `config/theme.ts`. Never hardcode hex values. |
+| **API via `apiService` only** | Never call `fetch` or `axios` directly. Always go through `@/services/api.service`. |
+| **try/catch + logger + toast** | Every async service method must have try/catch, log with `logger`, and `toast.error(...)` on failure. |
+| **Controlled Components** | All form inputs must be controlled via `react-hook-form` + `Controller`. No uncontrolled refs for forms. |
+| **Zod Validation** | All form and API input validation uses Zod schemas. Use `zodResolver` in every `useForm`. |
+| **No `any`** | Strict TypeScript throughout. Use `unknown` + type guards if truly uncertain. |
+| **No `console.log`** | Use `logger` from `@/services/logger.service` for all logging. |
+| **Toast for errors** | All failed operations must surface a friendly `toast.error(...)` — never `Alert.alert()`. |
+| **44pt Touch Targets** | Every interactive element must be at least 44 × 44 pt. |
+| **Accessibility Labels** | All icon-only buttons and images must have `accessibilityLabel`. |
+| **Safe Areas** | Every screen must use `SafeScreen` or `SafeAreaView`. |
 
-| Task involves | Read these rules |
-| --- | --- |
+---
+
+## Task → Rules Matrix
+
+| Task type | Read these rule files |
+|---|---|
+| New feature or screen | `architecture/features.md`, `architecture/services-and-types.md`, `ui/modern-styling.md` |
 | Any UI change | `ui/nativewind.md`, `ui/components.md`, `ui/design-tokens.md`, `ui/modern-styling.md`, `ui/accessibility.md` |
-| New or modified feature | `architecture/features.md`, `architecture/services-and-types.md`, `ui/modern-styling.md` |
-| Shared UI or shared code | `ui/components.md`, `ui/design-tokens.md`, `architecture/shared-code.md` |
-| Data fetching, APIs, or mutations | `architecture/services-and-types.md` |
-| Logging & Error notifications | `architecture/services-and-types.md`, `ui/modern-styling.md` |
+| API call or data fetching | `architecture/api-service.md`, `architecture/services-and-types.md` |
+| Form or input | `ui/reusable-components.md`, `architecture/types-and-validation.md` |
+| Types or Zod schema | `architecture/types-and-validation.md`, `architecture/services-and-types.md` |
+| Shared / promoted code | `architecture/shared-code.md`, `ui/components.md` |
+| Logging or error handling | `architecture/api-service.md` |
 | Any source change | `quality/change-workflow.md` |
 
-## Completion checklist
+---
 
-1. Confirm every new file is feature-local or genuinely shared.
-2. Confirm UI uses NativeWind and follows `config/theme.ts` tokens.
-3. Confirm logging uses `logger` and API errors notify via `toast`.
-4. Run the narrowest relevant validation scripts (`npx tsc --noEmit`, `npm run lint`).
-5. Report files changed, validation run, and anything intentionally out of scope.
+## Rule Files Index
+
+### Architecture
+| File | Subject |
+|---|---|
+| [`.agents/rules/architecture/features.md`](.agents/rules/architecture/features.md) | Feature-based directory structure, route rules, cross-feature boundaries |
+| [`.agents/rules/architecture/api-service.md`](.agents/rules/architecture/api-service.md) | `apiService` usage, try/catch pattern, logger, toast on every API call |
+| [`.agents/rules/architecture/services-and-types.md`](.agents/rules/architecture/services-and-types.md) | Service file conventions, type file conventions, `@/` imports, no `any` |
+| [`.agents/rules/architecture/types-and-validation.md`](.agents/rules/architecture/types-and-validation.md) | Zod schema authoring, inferred types, validation message rules |
+| [`.agents/rules/architecture/shared-code.md`](.agents/rules/architecture/shared-code.md) | When and how to promote feature code to shared directories |
+
+### UI
+| File | Subject |
+|---|---|
+| [`.agents/rules/ui/nativewind.md`](.agents/rules/ui/nativewind.md) | NativeWind-only styling, semantic utilities, conditional classes |
+| [`.agents/rules/ui/design-tokens.md`](.agents/rules/ui/design-tokens.md) | `config/theme.ts` tokens, adding new tokens, programmatic color use |
+| [`.agents/rules/ui/components.md`](.agents/rules/ui/components.md) | Component placement, file structure, error handling in components, toast |
+| [`.agents/rules/ui/reusable-components.md`](.agents/rules/ui/reusable-components.md) | Controlled component pattern, `react-hook-form` wiring, form pattern |
+| [`.agents/rules/ui/modern-styling.md`](.agents/rules/ui/modern-styling.md) | Touch targets, safe areas, keyboard avoiding, loading/empty/error states |
+|
+
+### Quality
+| File | Subject |
+|---|---|
+| [`.agents/rules/quality/change-workflow.md`](.agents/rules/quality/change-workflow.md) | Pre-code checklist, scope discipline, `tsc` + `lint` verification, completion report |
+
+---
+
+## Completion Checklist
+
+Before reporting a task as done:
+
+- [ ] Every new file is feature-local or promoted correctly to a shared directory
+- [ ] No `utils/`, `helpers/`, `common/`, or `misc/` directories created
+- [ ] UI uses NativeWind `className` only — no `StyleSheet`, no inline styles
+- [ ] All colors/spacing/radii use `config/theme.ts` semantic tokens
+- [ ] Every async service method has try/catch → logger → toast → rethrow
+- [ ] No `console.log` — only `logger`
+- [ ] All forms use `react-hook-form` + `zodResolver` + `ControlledInput`
+- [ ] No `any` types
+- [ ] `npx tsc --noEmit` passes
+- [ ] `npm run lint` passes
+- [ ] Files changed, validation results, and out-of-scope items reported
+
+---
 
 ## Guardrails
 
-- Do not add dependencies, change Expo configuration, edit lockfiles, or alter build/deployment settings unless the task requires it.
-- Do not commit, push, publish, or access/modify secrets unless explicitly requested.
-- Do not invent backend response fields or product behavior. Ask when a contract is unclear.
-- Do not create catch-all directories such as `utils`, `helpers`, `common`, or `misc` without a clear ownership and purpose.
+- Do not add npm dependencies unless the task requires it.
+- Do not edit `app.json`, `package.json`, lockfiles, or build config unless explicitly requested.
+- Do not commit, push, or publish unless explicitly asked.
+- Do not invent backend response fields. Ask if a contract is unclear.
+- Do not access or modify secrets or environment values.

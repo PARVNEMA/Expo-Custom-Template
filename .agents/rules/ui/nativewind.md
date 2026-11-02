@@ -1,32 +1,167 @@
-# NativeWind / Tailwind CSS Styling Rules
+# Rule: NativeWind Styling
 
-This project exclusively uses **NativeWind (v4)** for UI styling. All styling must adhere strictly to utility-first Tailwind classes.
+**Scope**: Every React Native component, screen, and layout in this project.
 
-## 1. Zero Raw `StyleSheet` & Zero Inline Styles
+> **MANDATORY** — All AI agents and contributors MUST follow this rule without exception.
 
-- **Forbidden**: `StyleSheet.create({ ... })` is strictly prohibited for new UI.
-- **Forbidden**: Inline style objects like `style={{ marginTop: 16, backgroundColor: '#fff' }}` are prohibited.
-- **Allowed Exception**: Dynamic runtime values that cannot be precomputed (such as animated values directly driven by `react-native-reanimated` style hooks) may use animated style objects. All other static or state-based styling must use `className`.
+---
 
-## 2. Dynamic & Conditional Classes
+## 1. NativeWind Is the Only Styling System
 
-- Use template literals or utilities like `clsx` / string concatenation for conditional classes:
-  ```tsx
-  <View
-    className={`p-4 rounded-xl border ${
-      isActive ? 'border-primary-500 bg-primary-50' : 'border-neutral-200 bg-white'
-    }`}
-  >
-  ```
-- Keep class groupings readable:
-  1. Layout & Flexbox (`flex-1`, `flex-row`, `items-center`, `justify-between`)
-  2. Spacing (`p-4`, `mx-2`, `gap-3`)
-  3. Sizing (`w-full`, `h-12`, `min-h-[44px]`)
-  4. Background & Colors (`bg-white`, `bg-neutral-50`)
-  5. Borders & Radius (`rounded-xl`, `border`, `border-neutral-200`)
-  6. Typography & Text (`text-base`, `font-medium`, `text-neutral-900`)
+All visual styling is applied exclusively through NativeWind `className` props using Tailwind utility classes.
 
-## 3. Safe Areas and Platform Specifics
+```tsx
+// ✅ CORRECT — NativeWind className
+<View className="flex-1 bg-background px-4 pt-6">
+  <Text className="text-xl font-bold text-text-primary">Hello</Text>
+</View>
 
-- Utilize `react-native-safe-area-context` or padding utilities instead of hardcoded platform offsets.
-- For platform-specific tweaks, use Tailwind's platform prefixes if configured, or clean component wrappers (e.g. `KeyboardAvoidingWrapper`).
+// ❌ FORBIDDEN — StyleSheet
+const styles = StyleSheet.create({ container: { flex: 1, backgroundColor: '#fff' } });
+<View style={styles.container} />
+
+// ❌ FORBIDDEN — Inline style objects
+<View style={{ flex: 1, backgroundColor: '#fff', paddingHorizontal: 16 }} />
+
+// ❌ FORBIDDEN — CSS-in-JS libraries (styled-components, emotion)
+const Container = styled.View`flex: 1;`;
+```
+
+---
+
+## 2. Semantic Token Utilities (NOT Raw Colors)
+
+Use the semantic Tailwind utilities from `config/theme.ts` / `tailwind.config.js`. **Never hardcode hex codes or raw color names for brand/semantic purposes.**
+
+### Color Utilities Available
+
+| Category | Utilities | When to use |
+|---|---|---|
+| Background | `bg-background`, `bg-surface`, `bg-surface-muted`, `bg-surface-card` | Page backgrounds, cards |
+| Text | `text-text-primary`, `text-text-secondary`, `text-text-muted`, `text-text-inverse` | All text |
+| Primary actions | `bg-primary`, `bg-primary-600`, `active:bg-primary-700` | Buttons, links |
+| Borders | `border-border`, `border-border-strong`, `border-border-focus`, `border-border-error` | Inputs, dividers |
+| Status | `bg-status-success`, `bg-status-error`, `text-status-error-text` | Alerts, badges |
+
+```tsx
+// ✅ CORRECT — semantic tokens
+<View className="bg-background px-4">
+  <Text className="text-text-primary font-semibold text-lg">Title</Text>
+  <Text className="text-text-secondary text-sm">Subtitle</Text>
+</View>
+
+// ❌ FORBIDDEN — raw hardcoded colors
+<View style={{ backgroundColor: '#ffffff' }}>
+  <Text style={{ color: '#111827' }}>Title</Text>
+</View>
+
+// ❌ FORBIDDEN — arbitrary Tailwind values
+<View className="bg-[#ffffff]">
+  <Text className="text-[#111827]">Title</Text>
+</View>
+```
+
+> **Exception**: Truly one-off decorative values (e.g., a gradient stop that is purely visual and has no semantic meaning) may use `bg-[#hexcode]` if approved and documented with a comment. This is rare.
+
+---
+
+## 3. Spacing Utilities
+
+Use Tailwind spacing classes derived from `THEME_SPACING` tokens. Common mappings:
+
+| Token | Tailwind | px |
+|---|---|---|
+| `xs` | `p-1`, `m-1` | 4 |
+| `sm` | `p-2`, `m-2` | 8 |
+| `md` | `p-4`, `m-4` | 16 |
+| `lg` | `p-6`, `m-6` | 24 |
+| `xl` | `p-8`, `m-8` | 32 |
+
+```tsx
+// ✅ CORRECT
+<View className="px-4 py-6 mb-4 gap-3">
+
+// ❌ FORBIDDEN
+<View style={{ paddingHorizontal: 16, paddingVertical: 24 }}>
+```
+
+---
+
+## 4. Border Radius Utilities
+
+Use radius tokens: `rounded-xs`, `rounded-sm`, `rounded-md`, `rounded-lg`, `rounded-xl`, `rounded-2xl`, `rounded-full`.
+
+```tsx
+// ✅ CORRECT
+<View className="rounded-xl overflow-hidden">
+<View className="rounded-full w-10 h-10">
+
+// ❌ FORBIDDEN
+<View style={{ borderRadius: 16 }}>
+```
+
+---
+
+## 5. Typography Utilities
+
+Use size tokens: `text-2xs`, `text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl`, `text-3xl`, `text-4xl`.
+Use weight tokens: `font-light`, `font-normal`, `font-medium`, `font-semibold`, `font-bold`, `font-extrabold`.
+
+```tsx
+// ✅ CORRECT
+<Text className="text-2xl font-bold text-text-primary">Heading</Text>
+<Text className="text-sm font-normal text-text-secondary">Body copy</Text>
+
+// ❌ FORBIDDEN
+<Text style={{ fontSize: 24, fontWeight: '700', color: '#111827' }}>Heading</Text>
+```
+
+---
+
+## 6. Conditional Classes
+
+Use template literals or `clsx` / `cn` for conditional class composition. Never conditionally apply `style` objects.
+
+```tsx
+// ✅ CORRECT — template literal
+<View
+  className={`rounded-xl px-4 flex-row items-center h-14 ${
+    hasError ? 'border border-border-error' : 'border border-transparent'
+  }`}
+/>
+
+// ✅ CORRECT — clsx (if already used in the codebase)
+import clsx from 'clsx';
+<View className={clsx('rounded-xl px-4', { 'border-border-error': hasError })} />
+
+// ❌ FORBIDDEN — conditional inline style
+<View style={{ borderColor: hasError ? '#ef4444' : 'transparent' }} />
+```
+
+---
+
+## 7. Style Prop Exception for Dynamic Values
+
+The ONLY acceptable use of `style` prop is for **truly dynamic computed values** that cannot be expressed as a static Tailwind class (e.g., a value derived from a JS variable at runtime).
+
+```tsx
+// ✅ Acceptable exception — dynamic width from JS measurement
+<View style={{ width: measuredWidth * 0.8 }} className="rounded-lg bg-primary" />
+
+// ❌ Not an exception — this IS expressible with Tailwind
+<View style={{ padding: 16 }} />   // Use className="p-4" instead
+```
+
+When using this exception, pair it with a `className` for all non-dynamic styles.
+
+---
+
+## 8. Checklist Before Committing
+
+- [ ] No `StyleSheet.create(...)` introduced
+- [ ] No inline `style={{ ... }}` objects for static values
+- [ ] All colors use semantic token utilities (`text-text-primary`, `bg-surface`, etc.)
+- [ ] No hardcoded hex codes in `className` (no `bg-[#...]` for semantic colors)
+- [ ] Spacing uses Tailwind utilities (`px-4`, `mt-6`, `gap-3`)
+- [ ] Border radius uses token utilities (`rounded-xl`, etc.)
+- [ ] Dynamic runtime values only use `style` prop, paired with `className` for everything else

@@ -1,69 +1,143 @@
-# Design Tokens & Theme Rules
+# Rule: Design Tokens & Centralized Theming
 
-A single centralized source of truth governs all visual design decisions in this application: colors, text sizing, typography, spacing, border radiuses, and elevation.
+**Scope**: All visual values — colors, typography, spacing, and border radius — anywhere in the codebase.
+
+> **MANDATORY** — All AI agents and contributors MUST follow this rule without exception.
+
+---
 
 ## 1. Single Source of Truth: `config/theme.ts`
 
-- All colors, semantic roles, and typography metrics are defined in [`config/theme.ts`](file:///F:/Expo-Custom-Template/config/theme.ts).
-- Never use random inline hex codes (e.g. `#111827`, `#9CA3AF`, `#f1f1f1`) directly in JSX or Tailwind arbitrarily. Always use named semantic classes or the `THEME_COLORS` constants.
+All design tokens are defined in [`config/theme.js`](../../../config/theme.js) and re-exported through [`config/theme.ts`](../../../config/theme.ts). The Tailwind config reads from `theme.js` to generate utility classes.
+
+```
+config/
+├── theme.js    ← raw token definitions (PALETTE, THEME_COLORS, THEME_TYPOGRAPHY, etc.)
+└── theme.ts    ← TypeScript re-export for programmatic use in components
+```
+
+**Never define colors, font sizes, spacing values, or radii anywhere else.**
 
 ---
 
-## 2. Standard Semantic Color Dictionary
+## 2. Token Hierarchy
 
-Always use these semantic token names across screens and components:
+```
+PALETTE (primitive brand + neutral scales)
+  └── THEME_COLORS (semantic role aliases built on top of PALETTE)
+        └── Tailwind utilities (generated from THEME_COLORS by tailwind.config.js)
+```
 
-### A. Backgrounds (`bg-*`)
-- `bg-background` / `bg-background-primary`: Default clean screen background (`#ffffff`).
-- `bg-background-secondary`: Light canvas / grouped view background (`#f9fafb`).
-- `bg-background-tertiary`: Inset background (`#f3f4f6`).
-- `bg-background-dark`: Dark background (`#111827`).
-- `bg-background-overlay`: Backdrop modal overlay (`rgba(0,0,0,0.5)`).
-
-### B. Surfaces & Cards (`bg-*`)
-- `bg-surface` / `bg-surface-card`: Cards, modals, bottom sheets (`#ffffff`).
-- `bg-surface-muted`: Muted background for form text inputs, chips, search bars (`#f3f4f6`).
-- `bg-surface-subtle`: Subtle alternating rows or active highlight (`#f9fafb`).
-- `bg-surface-dark`: Dark surface (`#1f2937`).
-
-### C. Text Hierarchy (`text-*`)
-- `text-text-primary`: Primary headings, titles, active input text (`#111827`).
-- `text-text-secondary`: Body copy, descriptions, subtitles (`#4b5563`).
-- `text-text-muted`: Captions, timestamps, helper notes (`#6b7280`).
-- `text-text-placeholder`: Form input placeholder text (`#9ca3af`).
-- `text-text-disabled`: Inactive / disabled states (`#9ca3af`).
-- `text-text-inverse`: White text for dark surfaces or primary buttons (`#ffffff`).
-- `text-text-link`: Clickable hyperlinks (`#2563eb`).
-
-### D. Borders & Dividers (`border-*`)
-- `border-border`: Standard card & container outlines (`#e5e7eb`).
-- `border-border-subtle`: Hairline dividers & separators (`#f3f4f6`).
-- `border-border-strong`: Emphasized borders, hover states (`#d1d5db`).
-- `border-border-focus`: Active focused input outline (`#2563eb`).
-- `border-border-error`: Form validation error border (`#ef4444`).
-
-### E. Status & Feedback (`bg-*`, `text-*`, `border-*`)
-- **Success**: `bg-status-success`, `text-status-success-text`, `bg-status-success-subtle`, `border-status-success-border`.
-- **Error**: `bg-status-error`, `text-status-error-text`, `bg-status-error-subtle`, `border-status-error-border`.
-- **Warning**: `bg-status-warning`, `text-status-warning-text`, `bg-status-warning-subtle`, `border-status-warning-border`.
-- **Info**: `bg-status-info`, `text-status-info-text`, `bg-status-info-subtle`, `border-status-info-border`.
-
-### F. Brand Scales
-- `primary`: `primary-50` through `primary-950` (Primary button CTAs, brand highlights).
-- `secondary`: `secondary-50` through `secondary-950`.
-- `accent`: `accent-50` through `accent-950`.
-- `neutral`: `neutral-50` through `neutral-950`.
+| Layer | Example | Use in |
+|---|---|---|
+| `PALETTE.primary[600]` | `#2563eb` | Only inside `theme.js` to build `THEME_COLORS` |
+| `THEME_COLORS.text.primary` | `#111827` | Programmatic use in JS/TS (e.g., chart colors) |
+| `text-text-primary` | Tailwind class | NativeWind `className` in components |
 
 ---
 
-## 3. Typography Scales (`text-*`)
+## 3. Available Semantic Tokens
 
-- `text-2xs`: 10px / 14px line-height (micro tags, overline headers)
-- `text-xs`: 12px / 16px line-height (captions, validation errors)
-- `text-sm`: 14px / 20px line-height (form labels, secondary text)
-- `text-base`: 16px / 24px line-height (body copy, button text)
-- `text-lg`: 18px / 28px line-height (card titles, prominent text)
-- `text-xl`: 20px / 28px line-height (modal titles, section headers)
-- `text-2xl`: 24px / 32px line-height (screen headers)
-- `text-3xl`: 30px / 36px line-height (hero titles)
-- `text-4xl`: 36px / 40px line-height (display banners)
+### Colors
+
+```
+Background  : bg-background, bg-background-secondary, bg-background-tertiary
+Surface     : bg-surface, bg-surface-card, bg-surface-elevated, bg-surface-muted
+Text        : text-text-primary, text-text-secondary, text-text-muted,
+              text-text-placeholder, text-text-disabled, text-text-inverse, text-text-link
+Primary     : bg-primary, bg-primary-{50–950}, text-primary, border-primary
+Secondary   : bg-secondary, bg-secondary-{50–950}
+Accent      : bg-accent, bg-accent-{50–950}
+Border      : border-border, border-border-subtle, border-border-strong,
+              border-border-focus, border-border-error
+Status      : bg-status-success, bg-status-error, bg-status-warning, bg-status-info
+              text-status-success-text, text-status-error-text, etc.
+```
+
+### Typography
+
+```
+Font size   : text-2xs, text-xs, text-sm, text-base, text-lg, text-xl, text-2xl, text-3xl, text-4xl
+Font weight : font-light, font-normal, font-medium, font-semibold, font-bold, font-extrabold
+```
+
+### Spacing
+
+```
+p-xs (4px), p-sm (8px), p-md (16px), p-lg (24px), p-xl (32px), p-2xl (40px), p-3xl (48px)
+(same for m-, px-, py-, mx-, my-, gap-, etc.)
+```
+
+### Border Radius
+
+```
+rounded-xs (4px), rounded-sm (8px), rounded-md (12px), rounded-lg (16px),
+rounded-xl (20px), rounded-2xl (24px), rounded-full (9999px)
+```
+
+---
+
+## 4. Programmatic Use (JS/TS, not className)
+
+When you need a color value in JavaScript (e.g., for `ActivityIndicator`, `react-native-svg`, chart libraries), import from `config/theme.ts`:
+
+```tsx
+import { THEME_COLORS } from '@/config/theme';
+
+// ✅ CORRECT — programmatic use from theme
+<ActivityIndicator color={THEME_COLORS.primary.DEFAULT} />
+<SvgCircle fill={THEME_COLORS.status.success.DEFAULT} />
+
+// ❌ FORBIDDEN — hardcoded hex
+<ActivityIndicator color="#2563eb" />
+<SvgCircle fill="#16a34a" />
+```
+
+---
+
+## 5. Adding New Tokens
+
+If you need a new color, spacing value, or radius that does not exist yet:
+
+1. Add the primitive value to `PALETTE` in `config/theme.js` (if it's a new brand color).
+2. Add a semantic alias to the appropriate section in `THEME_COLORS`, `THEME_SPACING`, or `THEME_RADIUS`.
+3. `tailwind.config.js` will automatically pick up the new token and generate the utility class.
+4. Use the new utility class in components — never hardcode the raw value.
+
+```js
+// config/theme.js — adding a new semantic token
+
+const THEME_COLORS = {
+  // ... existing tokens
+  surface: {
+    // ... existing surface tokens
+    highlight: '#fef9c3', // ← new token — add here, not in the component
+  },
+};
+```
+
+Then in the component:
+```tsx
+<View className="bg-surface-highlight" /> // ✅ uses the new token
+<View style={{ backgroundColor: '#fef9c3' }} /> // ❌ bypasses the token system
+```
+
+---
+
+## 6. Dark Mode
+
+This template uses a single light-mode palette by default. If dark mode support is added:
+
+- Dark-mode variants must be defined as new semantic tokens in `theme.js` (e.g., `background.dark`, `surface.dark`).
+- Toggle via NativeWind's `dark:` prefix: `className="bg-background dark:bg-background-dark"`.
+- Never hardcode dark-mode colors in individual components.
+
+---
+
+## 7. Checklist Before Committing
+
+- [ ] No hardcoded hex codes (`#xxxxxx`) in any component or style
+- [ ] No hardcoded numeric spacing or font size values in `style` props
+- [ ] All colors reference a semantic token (`text-text-primary`, `bg-surface-muted`, etc.)
+- [ ] Programmatic color use imports from `@/config/theme`
+- [ ] New design values added to `config/theme.js` first, then used via utility classes
