@@ -168,8 +168,8 @@ import { useState } from 'react';
 
 import ControlledInput from '@/components/forms/ControlledInput';
 import Button from '@/components/ui/Button';
-import { toast } from '@/services/toast.service';
-import { createPost } from '../services/posts.service';
+import { showToast, showErrorToast } from '@/services/toast.service';
+import { postsService } from '../services/posts.service';
 import { createPostSchema, CreatePostFormValues } from '../types/posts.schema';
 
 export default function CreatePostScreen() {
@@ -189,11 +189,11 @@ export default function CreatePostScreen() {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      await createPost({ ...data, userId: 1 });
-      toast.success('Post created!');
+      await postsService.create({ ...data, userId: 1 });
+      showToast('Post created!');
       reset();
     } catch {
-      // service already called toast.error — no double toast
+      // service already called showErrorToast — no double toast
     } finally {
       setIsSubmitting(false);
     }

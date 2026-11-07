@@ -31,12 +31,12 @@ import { View, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 
 // 3. Internal imports — services, hooks, components
-import { toast } from '@/services/toast.service';
+import { showToast, showErrorToast } from '@/services/toast.service';
 import { logger } from '@/services/logger.service';
 import Button from '@/components/ui/Button';
 
 // 4. Feature-local imports
-import { deletePost } from '../services/posts.service';
+import { postsService } from '../services/posts.service';
 import type { Post } from '../types/posts.types';
 
 // 5. Types / interfaces for THIS file
@@ -59,11 +59,11 @@ export default function PostCard({ post, onDelete }: PostCardProps) { ... }
 // ✅ CORRECT — try/catch with toast in the component handler
 const handleDelete = useCallback(async () => {
   try {
-    await deletePost(post.id);
-    toast.success('Post deleted.');
+    await postsService.remove(post.id);
+    showToast('Post deleted.');
     onDelete?.(post.id);
-  } catch {
-    // Service already called toast.error — no double-toast needed
+  } catch (error) {
+    // Service already called showErrorToast — no double-toast needed
     // Only log here if extra context is needed
     logger.warn('PostCard', 'Delete failed for post', { id: post.id });
   }
@@ -71,27 +71,27 @@ const handleDelete = useCallback(async () => {
 
 // ❌ FORBIDDEN — unhandled async, no user feedback
 const handleDelete = async () => {
-  await deletePost(post.id); // throws? user never knows
+  await postsService.remove(post.id); // throws? user never knows
 };
 
 // ❌ FORBIDDEN — alert() for errors
 const handleDelete = async () => {
   try {
-    await deletePost(post.id);
+    await postsService.remove(post.id);
   } catch (e) {
-    Alert.alert('Error', 'Something went wrong'); // use toast instead
+    Alert.alert('Error', 'Something went wrong'); // use showErrorToast instead
   }
 };
 ```
 
 ### Double-Toast Rule
 
-Services already call `toast.error(...)` in their catch blocks. Components that call those services should **NOT** toast again for the same error — they only need to handle local state (e.g., reset a loading flag, close a modal).
+Services already call `showErrorToast(error, fallback)` in their catch blocks. Components that call those services should **NOT** toast again for the same error — they only need to handle local state (e.g., reset a loading flag, close a modal).
 
 ```tsx
 // ✅ CORRECT — service toasts, component cleans up state
 try {
-  await deletePost(post.id);
+  await postsService.remove(post.id);
   setDeleting(false);
 } catch {
   setDeleting(false); // reset loading state — no second toast
@@ -99,9 +99,9 @@ try {
 
 // ❌ FORBIDDEN — double toast
 try {
-  await deletePost(post.id);
+  await postsService.remove(post.id);
 } catch (e) {
-  toast.error('Failed to delete'); // service already did this
+  showErrorToast(e, 'Failed to delete'); // service already did this
 }
 ```
 
@@ -116,8 +116,8 @@ const handleSubmit = async (data: FormValues) => {
   if (isLoading) return;          // prevent double-submission
   setIsLoading(true);
   try {
-    await createPost(data);
-    toast.success('Post created!');
+    await postsService.create(data);
+    showToast('Post created!');
     router.back();
   } catch {
     // service handled toast — just reset state

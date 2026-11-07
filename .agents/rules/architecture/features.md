@@ -139,7 +139,7 @@ export default PostListScreen;
 ```ts
 import { apiService } from '@/services/api.service';
 import { logger } from '@/services/logger.service';
-import { toast } from '@/services/toast.service';
+import { showErrorToast } from '@/services/toast.service';
 import type { Post } from '../types/posts.types';
 
 const TAG = 'PostsService';
@@ -154,7 +154,7 @@ export const postsService = {
       return posts;
     } catch (error) {
       logger.error(TAG, 'Failed to fetch posts', error as Error);
-      toast.error('Could not load posts. Please try again.', 'Load Error');
+      showErrorToast(error, 'Could not load posts. Please try again.');
       throw error;
     }
   },

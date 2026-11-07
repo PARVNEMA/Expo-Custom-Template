@@ -56,12 +56,12 @@ config/                 Design tokens and constants (theme.ts, constants.ts)
 | **NativeWind Only** | Style with `className` utilities only. No `StyleSheet`, inline `style` objects, or CSS-in-JS. |
 | **Semantic Design Tokens** | All colors, spacing, radii, and font sizes from `config/theme.ts`. Never hardcode hex values. |
 | **API via `apiService` only** | Never call `fetch` or `axios` directly. Always go through `@/services/api.service`. |
-| **try/catch + logger + toast** | Every async service method must have try/catch, log with `logger`, and `toast.error(...)` on failure. |
+| **try/catch + logger + toast** | Every async service method must have try/catch, log with `logger`, and `showErrorToast(...)` (or `toast.error(...)`) on failure. |
 | **Controlled Components** | All form inputs must be controlled via `react-hook-form` + `Controller`. No uncontrolled refs for forms. |
 | **Zod Validation** | All form and API input validation uses Zod schemas. Use `zodResolver` in every `useForm`. |
 | **No `any`** | Strict TypeScript throughout. Use `unknown` + type guards if truly uncertain. |
 | **No `console.log`** | Use `logger` from `@/services/logger.service` for all logging. |
-| **Toast for errors** | All failed operations must surface a friendly `toast.error(...)` — never `Alert.alert()`. |
+| **Toast for errors** | All failed operations must surface a friendly `showErrorToast(error, fallbackMessage)` (or `toast.error(...)`) — never `Alert.alert()`. |
 | **44pt Touch Targets** | Every interactive element must be at least 44 × 44 pt. |
 | **Accessibility Labels** | All icon-only buttons and images must have `accessibilityLabel`. |
 | **Safe Areas** | Every screen must use `SafeScreen` or `SafeAreaView`. |
@@ -72,7 +72,7 @@ config/                 Design tokens and constants (theme.ts, constants.ts)
 
 | Task type | Read these rule files |
 |---|---|
-| New feature or screen | `architecture/features.md`, `architecture/services-and-types.md`, `ui/modern-styling.md` |
+| New feature or screen | `architecture/features.md`, `architecture/services-and-types.md`, `ui/modern-styling.md`, skill: `.agents/skills/react-native-feature/SKILL.md` |
 | Any UI change | `ui/nativewind.md`, `ui/components.md`, `ui/design-tokens.md`, `ui/modern-styling.md`, `ui/accessibility.md` |
 | API call or data fetching | `architecture/api-service.md`, `architecture/services-and-types.md` |
 | Form or input | `ui/reusable-components.md`, `architecture/types-and-validation.md` |
@@ -119,7 +119,7 @@ Before reporting a task as done:
 - [ ] No `utils/`, `helpers/`, `common/`, or `misc/` directories created
 - [ ] UI uses NativeWind `className` only — no `StyleSheet`, no inline styles
 - [ ] All colors/spacing/radii use `config/theme.ts` semantic tokens
-- [ ] Every async service method has try/catch → logger → toast → rethrow
+- [ ] Every async service method has try/catch → logger → showErrorToast (or toast.error) → rethrow
 - [ ] No `console.log` — only `logger`
 - [ ] All forms use `react-hook-form` + `zodResolver` + `ControlledInput`
 - [ ] No `any` types

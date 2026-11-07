@@ -24,7 +24,7 @@ A service file exports a **named service object** (e.g. `postsService`, `authSer
 
 import { apiService } from '@/services/api.service';
 import { logger } from '@/services/logger.service';
-import { toast } from '@/services/toast.service';
+import { showToast, showErrorToast } from '@/services/toast.service';
 import type { Post } from '../types/posts.types';
 
 const TAG = 'PostsService'; // Module-level constant for logger tag
@@ -179,7 +179,7 @@ Always use `@/` path aliases. Never use relative `../../../` paths that cross fe
 ```ts
 // ✅ CORRECT
 import { apiService } from '@/services/api.service';
-import { toast } from '@/services/toast.service';
+import { showToast, showErrorToast } from '@/services/toast.service';
 import { logger } from '@/services/logger.service';
 import type { Post } from '@/feature/posts/types/posts.types';
 

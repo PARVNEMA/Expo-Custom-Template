@@ -153,7 +153,7 @@ class ApiService {
     logger.error('ApiService', `API Error [${apiError.status}]: ${apiError.message}`, apiError);
 
     if (showToast) {
-      toast.error(apiError.message, 'Network Request Failed');
+      toast.error(apiError, 'Network Request Failed');
     }
 
     return apiError;
@@ -190,7 +190,7 @@ class ApiService {
     const response = await this.retryRequest(() =>
       this.client.get<ApiResponse<T> | T>(url, config)
     );
-    return (response.data as ApiResponse<T>).data || (response.data as T);
+    return  (response.data as T);
   }
 
   async post<T = any>(
@@ -201,7 +201,7 @@ class ApiService {
     const response = await this.retryRequest(() =>
       this.client.post<ApiResponse<T> | T>(url, data, config)
     );
-    return (response.data as ApiResponse<T>).data || (response.data as T);
+    return  (response.data as T);
   }
 
   async put<T = any>(
@@ -212,7 +212,7 @@ class ApiService {
     const response = await this.retryRequest(() =>
       this.client.put<ApiResponse<T> | T>(url, data, config)
     );
-    return (response.data as ApiResponse<T>).data || (response.data as T);
+    return (response.data as T);
   }
 
   async patch<T = any>(
@@ -223,14 +223,14 @@ class ApiService {
     const response = await this.retryRequest(() =>
       this.client.patch<ApiResponse<T> | T>(url, data, config)
     );
-    return (response.data as ApiResponse<T>).data || (response.data as T);
+    return  (response.data as T);
   }
 
   async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.retryRequest(() =>
       this.client.delete<ApiResponse<T> | T>(url, config)
     );
-    return (response.data as ApiResponse<T>).data || (response.data as T);
+    return  (response.data as T);
   }
 }
 

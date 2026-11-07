@@ -33,7 +33,7 @@ Every async function in `feature/<name>/services/` or `services/` that calls `ap
 ```ts
 import { apiService } from '@/services/api.service';
 import { logger } from '@/services/logger.service';
-import { toast } from '@/services/toast.service';
+import { showErrorToast, showToast } from '@/services/toast.service';
 import { ApiError } from '@/types/api.types';
 
 export async function createPost(payload: CreatePostPayload): Promise<Post> {
@@ -43,14 +43,11 @@ export async function createPost(payload: CreatePostPayload): Promise<Post> {
     const post = await apiService.post<Post>('/posts', payload);
 
     logger.info('PostsService', `Post created successfully`, { id: post.id });
+    showToast('Post created!');
     return post;
   } catch (error) {
-    const apiError = error as ApiError;
     logger.error('PostsService', 'Failed to create post', error as Error, { payload });
-    toast.error(
-      apiError.message ?? 'Failed to create post. Please try again.',
-      'Create Error'
-    );
+    showErrorToast(error, 'Failed to create post. Please try again.');
     throw error; // Re-throw so the caller / React Query can react
   }
 }
@@ -63,7 +60,7 @@ export async function createPost(payload: CreatePostPayload): Promise<Post> {
 | Log **before** the request with `logger.info` | Provides a request trail |
 | Log **after** success with `logger.info` | Confirms completion |
 | Log in `catch` with `logger.error` | Captures failures for debugging |
-| Call `toast.error(...)` in `catch` | Surfaces the failure to the user |
+| Call `showErrorToast(error, fallback)` in `catch` | Surfaces the failure to the user |
 | Re-throw after logging and toasting | Lets React Query / UI state react |
 | Never swallow errors silently | Silent failures hide bugs |
 
@@ -96,21 +93,45 @@ logger.error('PostsService', 'Failed to fetch posts', error as Error);
 
 ---
 
-## 4. Toast for User-Facing Errors
+## 4. Toast for User-Facing Notifications & Errors
 
-Every API failure **must** show a toast. The message must be human-readable (not a raw HTTP status or stack trace).
+Every API failure **must** show a toast. Use `showErrorToast` for error handling and `showToast` for messages/success notifications, or use the unified `toast` object (`toast.error(...)`, `toast.success(...)`).
+
+`showErrorToast` automatically formats error objects, strings, arrays, or Axios / API responses into human-readable strings via `formatErrorMessage`.
+
+### Signatures & Exports
 
 ```ts
-// ✅ CORRECT
-toast.error('Could not load your profile. Please try again.', 'Load Failed');
-toast.success('Profile updated successfully!');
-toast.warning('Your session is about to expire.');
-toast.info('Changes saved.');
+import { showToast, showErrorToast, toast } from '@/services/toast.service';
 
-// ❌ FORBIDDEN — raw error messages or no notification at all
-toast.error(error.toString());         // Not user-friendly
-toast.error(JSON.stringify(apiError)); // Not user-friendly
-// (no toast at all)                   // User has no feedback
+// Named functions:
+showToast(message: string, duration?: 'short' | 'long'): void;
+showErrorToast(error: unknown, fallbackMessage?: string, duration?: 'short' | 'long'): void;
+
+// Unified object helpers:
+toast.show(message: string, duration?: 'short' | 'long'): void;
+toast.error(error: unknown, fallbackMessage?: string, duration?: 'short' | 'long'): void;
+toast.success(message: string, duration?: 'short' | 'long'): void;
+toast.info(message: string, duration?: 'short' | 'long'): void;
+toast.warning(message: string, duration?: 'short' | 'long'): void;
+```
+
+### Examples
+
+```ts
+// ✅ CORRECT — Using showErrorToast or showToast directly
+showErrorToast(error, 'Could not load your profile. Please try again.');
+showToast('Profile updated successfully!');
+showToast('Your session is about to expire.');
+
+// ✅ ALSO CORRECT — Using the toast helper object
+toast.error(error, 'Could not load your profile. Please try again.');
+toast.success('Profile updated successfully!');
+
+// ❌ FORBIDDEN — raw error stringification or no notification at all
+showToast(error.toString());         // Not user-friendly (use showErrorToast instead)
+showToast(JSON.stringify(apiError)); // Not user-friendly
+// (no toast at all)                 // User has no feedback
 ```
 
 ---
@@ -124,7 +145,7 @@ Services are exported as a **named object** (`postsService`, `authService`, etc.
 
 import { apiService } from '@/services/api.service';
 import { logger } from '@/services/logger.service';
-import { toast } from '@/services/toast.service';
+import { showErrorToast, showToast } from '@/services/toast.service';
 import type { ApiError } from '@/types/api.types';
 import type { Post, CreatePostPayload, UpdatePostPayload } from '../types/posts.types';
 
@@ -140,7 +161,7 @@ export const postsService = {
       return posts;
     } catch (error) {
       logger.error(TAG, 'Failed to fetch posts', error as Error);
-      toast.error('Could not load posts. Please try again.', 'Load Error');
+      showErrorToast(error, 'Could not load posts. Please try again.');
       throw error;
     }
   },
@@ -153,7 +174,7 @@ export const postsService = {
       return post;
     } catch (error) {
       logger.error(TAG, `Failed to fetch post ${id}`, error as Error, { id });
-      toast.error('Could not load this post. Please try again.', 'Load Error');
+      showErrorToast(error, 'Could not load this post. Please try again.');
       throw error;
     }
   },
@@ -163,12 +184,11 @@ export const postsService = {
       logger.info(TAG, 'Creating new post', { title: payload.title });
       const post = await apiService.post<Post>('/posts', payload);
       logger.info(TAG, 'Post created successfully', { id: post.id });
-      toast.success('Post created!');
+      showToast('Post created!');
       return post;
     } catch (error) {
-      const apiError = error as ApiError;
       logger.error(TAG, 'Failed to create post', error as Error, { payload });
-      toast.error(apiError.message ?? 'Failed to create post. Please try again.', 'Create Error');
+      showErrorToast(error, 'Failed to create post. Please try again.');
       throw error;
     }
   },
@@ -178,12 +198,11 @@ export const postsService = {
       logger.info(TAG, `Updating post ${id}`, { id });
       const post = await apiService.put<Post>(`/posts/${id}`, payload);
       logger.info(TAG, `Post ${id} updated successfully`);
-      toast.success('Post updated successfully!');
+      showToast('Post updated successfully!');
       return post;
     } catch (error) {
-      const apiError = error as ApiError;
       logger.error(TAG, `Failed to update post ${id}`, error as Error, { id, payload });
-      toast.error(apiError.message ?? 'Failed to update post.', 'Update Error');
+      showErrorToast(error, 'Failed to update post.');
       throw error;
     }
   },
@@ -193,10 +212,10 @@ export const postsService = {
       logger.info(TAG, `Deleting post ${id}`);
       await apiService.delete(`/posts/${id}`);
       logger.info(TAG, `Post ${id} deleted`);
-      toast.success('Post deleted.');
+      showToast('Post deleted.');
     } catch (error) {
       logger.error(TAG, `Failed to delete post ${id}`, error as Error, { id });
-      toast.error('Could not delete this post. Please try again.', 'Delete Error');
+      showErrorToast(error, 'Could not delete this post. Please try again.');
       throw error;
     }
   },
@@ -267,7 +286,7 @@ try {
 - [ ] Every async service function has a try/catch
 - [ ] `logger.info` called before and after every request
 - [ ] `logger.error` called in every catch block with the raw error
-- [ ] `toast.error(...)` called in every catch block with a friendly message
+- [ ] `showErrorToast(...)` (or `toast.error(...)`) called in every catch block with a friendly message
 - [ ] No raw `console.log` / `console.error` in service files
 - [ ] No direct `fetch` or `axios` calls — only `apiService`
 - [ ] Errors are re-thrown after logging (not swallowed)
